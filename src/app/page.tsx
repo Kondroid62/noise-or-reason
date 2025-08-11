@@ -1,103 +1,137 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence, PanInfo } from 'framer-motion';
+import MessageCard from '@/components/MessageCard';
+import { MessageCard as MessageCardType } from '@/types';
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [cards, setCards] = useState<MessageCardType[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [exitX, setExitX] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // 初期カード取得
+  useEffect(() => {
+    fetchInitialCards();
+  }, []);
+
+  const fetchInitialCards = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // 3枚のカードを取得
+      const cardPromises = Array(3).fill(null).map(() => 
+        fetch('/api/generate-card').then(res => res.json())
+      );
+      
+      const responses = await Promise.all(cardPromises);
+      const newCards = responses.map(res => ({
+        ...res.card,
+        createdAt: new Date(res.card.createdAt)
+      }));
+      
+      setCards(newCards);
+    } catch (err) {
+      console.error('Failed to fetch cards:', err);
+      setError('カードの取得に失敗しました');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchNewCard = async () => {
+    try {
+      const response = await fetch('/api/generate-card');
+      const data = await response.json();
+      
+      if (data.success) {
+        const newCard = {
+          ...data.card,
+          createdAt: new Date(data.card.createdAt)
+        };
+        setCards(prev => [...prev, newCard]);
+      }
+    } catch (err) {
+      console.error('Failed to fetch new card:', err);
+    }
+  };
+
+  const handleDragEnd = async (_event: any, info: PanInfo) => {
+    const threshold = 100;
+    
+    if (Math.abs(info.offset.x) > threshold) {
+      setExitX(info.offset.x > 0 ? 300 : -300);
+      
+      if (currentIndex < cards.length - 1) {
+        setCurrentIndex(currentIndex + 1);
+        
+        // 最後から2枚目になったら新しいカードを取得
+        if (currentIndex === cards.length - 2) {
+          fetchNewCard();
+        }
+      }
+    }
+  };
+
+  return (
+    <main className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 flex items-center justify-center p-4">
+      <div className="container max-w-6xl">
+        {/* ヘッダー */}
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold text-white mb-4">
+            Noise or Reason
+          </h1>
+          <p className="text-white/80 text-lg">
+            くだらない話から深い洞察まで、今日のカードは何でしょう？
+          </p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        {/* カード表示エリア */}
+        <div className="flex justify-center relative h-[400px]">
+          {loading ? (
+            <div className="flex items-center justify-center">
+              <div className="text-white text-xl">カードを準備中...</div>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center">
+              <div className="text-white text-xl mb-4">{error}</div>
+              <button
+                onClick={fetchInitialCards}
+                className="px-6 py-2 bg-white/20 rounded-lg text-white hover:bg-white/30 transition"
+              >
+                再試行
+              </button>
+            </div>
+          ) : cards.length > 0 ? (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentIndex}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ x: exitX, opacity: 0, transition: { duration: 0.3 } }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                onDragEnd={handleDragEnd}
+                whileDrag={{ scale: 1.05 }}
+                style={{ position: 'absolute' }}
+              >
+                <MessageCard 
+                  card={cards[currentIndex]}
+                />
+              </motion.div>
+            </AnimatePresence>
+          ) : null}
+        </div>
+
+        {/* フッター */}
+        <div className="text-center mt-12">
+          <p className="text-white/60 text-sm">
+            {cards.length > 0 && `スワイプでカードを評価 • ${currentIndex + 1}/${cards.length}`}
+          </p>
+        </div>
+      </div>
+    </main>
   );
 }

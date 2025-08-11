@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
     // レスポンスデータ
     const cardData = {
-      id: `card_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `card_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       content: content,
       type: type,
       createdAt: new Date().toISOString(),
@@ -68,11 +68,16 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, card: cardData });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('OpenAI API Error:', error);
     
     // エラータイプに応じた適切なレスポンス
-    if (error?.error?.type === 'insufficient_quota') {
+    const errorObj = error as Record<string, unknown>;
+    if (errorObj?.error && 
+        typeof errorObj.error === 'object' && 
+        errorObj.error !== null &&
+        'type' in errorObj.error && 
+        (errorObj.error as Record<string, unknown>).type === 'insufficient_quota') {
       return NextResponse.json(
         { error: 'API quota exceeded. Please check your OpenAI billing.' },
         { status: 402 }
@@ -115,7 +120,7 @@ export async function GET() {
     }
 
     const cardData = {
-      id: `card_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `card_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       content: content,
       type: randomType,
       createdAt: new Date().toISOString(),
@@ -123,7 +128,7 @@ export async function GET() {
 
     return NextResponse.json({ success: true, card: cardData });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('OpenAI API Error:', error);
     return NextResponse.json(
       { error: 'Failed to generate card content' },

@@ -58,7 +58,7 @@ export default function Home() {
     }
   };
 
-  const handleDragEnd = async (_event: any, info: PanInfo) => {
+  const handleDragEnd = async (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const threshold = 100;
     
     if (Math.abs(info.offset.x) > threshold) {

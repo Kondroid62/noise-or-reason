@@ -76,14 +76,14 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 flex items-center justify-center p-4">
+    <main className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="container max-w-6xl">
         {/* ヘッダー */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-white mb-4">
+          <h1 className="text-5xl font-bold text-gray-600 mb-4">
             Noise or Reason
           </h1>
-          <p className="text-white/80 text-lg">
+          <p className="text-gray-800 text-lg">
             くだらない話から深い洞察まで、今日のカードは何でしょう？
           </p>
         </div>
@@ -92,14 +92,14 @@ export default function Home() {
         <div className="flex justify-center relative h-[400px]">
           {loading ? (
             <div className="flex items-center justify-center">
-              <div className="text-white text-xl">カードを準備中...</div>
+              <div className="text-gray-800 text-xl">カードを準備中...</div>
             </div>
           ) : error ? (
             <div className="flex flex-col items-center justify-center">
-              <div className="text-white text-xl mb-4">{error}</div>
+              <div className="text-gray-800 text-xl mb-4">{error}</div>
               <button
                 onClick={fetchInitialCards}
-                className="px-6 py-2 bg-white/20 rounded-lg text-white hover:bg-white/30 transition"
+                className="px-6 py-2 bg-white/20 rounded-lg text-gray-800 hover:bg-white/30 transition"
               >
                 再試行
               </button>
@@ -127,7 +127,7 @@ export default function Home() {
 
         {/* フッター */}
         <div className="text-center mt-12">
-          <p className="text-white/60 text-sm">
+          <p className="text-gray-800 text-sm">
             {cards.length > 0 && `スワイプでカードを評価 • ${currentIndex + 1}/${cards.length}`}
           </p>
         </div>
